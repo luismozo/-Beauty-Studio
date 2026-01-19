@@ -249,7 +249,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { supabase } from '../supabase'
 import { 
   Sparkles, Clock3, CalendarDays, Scissors, 
@@ -273,6 +273,7 @@ const submitting = ref(false)
 const message = ref('')
 const isError = ref(false)
 const showModal = ref(false)
+let realtimeChannel = null
 
 const form = ref({ service_id: '', date: '', time: '' })
 const customerForm = ref({ full_name: '', phone: '' })
@@ -545,6 +546,24 @@ const finalizeBooking = async () => {
 onMounted(() => {
   loadServices()
   fetchProfile()
+
+  // Suscripción en Tiempo Real para Disponibilidad
+  realtimeChannel = supabase
+    .channel('booking-slots')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, (payload) => {
+      // Si hay una nueva cita o una cancelación en la fecha que estoy viendo, recargar slots
+      if (form.value.date) {
+        const changedDate = payload.new.appointment_date || payload.old.appointment_date
+        if (changedDate && changedDate.startsWith(form.value.date)) {
+          fetchOccupiedSlots(form.value.date)
+        }
+      }
+    })
+    .subscribe()
+})
+
+onUnmounted(() => {
+  if (realtimeChannel) supabase.removeChannel(realtimeChannel)
 })
 </script>
 

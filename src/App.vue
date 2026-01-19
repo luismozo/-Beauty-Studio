@@ -19,7 +19,7 @@ const showLogoutModal = ref(false)
 const mobileMenuOpen = ref(false)
 
 // --- Lógica de Inactividad (Timeout) ---
-const INACTIVITY_LIMIT = 1 * 60 * 1000; // 2 minutos en milisegundos
+const INACTIVITY_LIMIT = 20 * 60 * 1000; // 2 minutos en milisegundos
 let inactivityTimer = null
 
 const resetInactivityTimer = () => {

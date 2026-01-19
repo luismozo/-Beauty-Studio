@@ -96,6 +96,37 @@
       </button>
     </div>
 
+    <!-- Filters and Search (Sticky Bar) -->
+    <div class="flex flex-col-reverse md:flex-row justify-between items-center gap-4 mb-6 bg-white p-3 rounded-2xl border border-stone-100 shadow-sm sticky top-20 z-30">
+      <!-- Date Filters -->
+      <div class="flex gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-hide">
+        <button 
+          v-for="filter in filters" 
+          :key="filter.value"
+          @click="currentFilter = filter.value"
+          :class="[
+            'px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap',
+            currentFilter === filter.value 
+              ? 'bg-stone-800 text-white shadow-md' 
+              : 'bg-stone-50 text-stone-500 hover:bg-stone-100'
+          ]"
+        >
+          {{ filter.label }}
+        </button>
+      </div>
+
+      <!-- Search -->
+      <div class="relative w-full md:w-auto">
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+        <input 
+          v-model="searchQuery"
+          type="text"
+          placeholder="Buscar cliente, fecha..."
+          class="w-full md:w-64 pl-10 pr-4 py-2.5 bg-stone-50 border-none rounded-xl focus:ring-2 focus:ring-rose-100 text-sm font-medium text-stone-600 placeholder-stone-400 transition-all"
+        >
+      </div>
+    </div>
+
     <div class="space-y-4">
       
       <!-- Loading State -->
@@ -832,14 +863,30 @@ const generateWhatsAppLink = (apt) => {
 }
 
 const completeAppointment = async (id) => {
-  // Aquí podrías cambiar el estado a 'completed' en lugar de borrar
+  // 1. Verificación de seguridad: Consultar estado actual antes de actuar
+  const { data: currentApt } = await supabase
+    .from('appointments')
+    .select('status')
+    .eq('id', id)
+    .single()
+
+  if (currentApt && currentApt.status === 'cancelled') {
+    toast.error('⚠️ No se puede completar: El cliente acaba de cancelar esta cita.')
+    fetchAppointments() // Actualizar visualmente
+    return
+  }
+
+  // 2. Proceder con la actualización
   const { error } = await supabase
     .from('appointments')
     .update({ status: 'completed' })
     .eq('id', id)
   
   if (!error) {
+    toast.success('Cita marcada como completada')
     fetchAppointments()
+  } else {
+    toast.error('Error al actualizar: ' + error.message)
   }
 }
 
@@ -850,6 +897,21 @@ const cancelAppointment = (id) => {
 
 const confirmCancel = async () => {
   if (!appointmentToCancel.value) return
+
+  // 1. Verificación de seguridad
+  const { data: currentApt } = await supabase
+    .from('appointments')
+    .select('status')
+    .eq('id', appointmentToCancel.value)
+    .single()
+
+  if (currentApt && currentApt.status !== 'pending') {
+    toast.error(`⚠️ El estado de la cita ha cambiado a "${translateStatus(currentApt.status)}".`)
+    fetchAppointments()
+    showCancelModal.value = false
+    return
+  }
+
   const { error } = await supabase
     .from('appointments')
     .update({ status: 'cancelled' })
@@ -857,6 +919,7 @@ const confirmCancel = async () => {
   
   if (!error) {
     fetchAppointments()
+    toast.success('Cita cancelada correctamente')
     showCancelModal.value = false
     appointmentToCancel.value = null
   }
@@ -880,6 +943,7 @@ onMounted(() => {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, (payload) => {
       if (payload.eventType === 'INSERT') {
         toast.success('¡Nueva cita recibida!')
+      } else if (payload.eventType === 'UPDATE') {
       }
       fetchAppointments() // Recargar la lista automáticamente
     })

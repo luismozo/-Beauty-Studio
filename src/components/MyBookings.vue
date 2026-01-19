@@ -124,14 +124,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { supabase } from '../supabase'
 import { Loader2, CalendarX2, Clock, User, MessageCircle, XCircle } from 'lucide-vue-next'
+import { useToast } from '../composables/useToast'
 
 const bookings = ref([])
 const loading = ref(true)
 const showCancelModal = ref(false)
 const bookingToCancel = ref(null)
+const toast = useToast()
+let realtimeChannel = null
 
 const fetchBookings = async () => {
   loading.value = true
@@ -155,6 +158,21 @@ const confirmCancel = (booking) => {
 
 const handleCancel = async () => {
   if (!bookingToCancel.value) return
+
+  // Verificar estado antes de cancelar (por si el admin la completó hace un segundo)
+  const { data: current, error: fetchError } = await supabase
+    .from('appointments')
+    .select('status')
+    .eq('id', bookingToCancel.value.id)
+    .single()
+
+  if (fetchError || !current || current.status === 'completed') {
+    toast.error('No se puede cancelar: La cita ya fue completada o no existe.')
+    fetchBookings()
+    showCancelModal.value = false
+    return
+  }
+
   const { error } = await supabase
     .from('appointments')
     .update({ status: 'cancelled' })
@@ -162,6 +180,7 @@ const handleCancel = async () => {
   
   if (!error) {
     fetchBookings()
+    toast.success('Cita cancelada correctamente')
     showCancelModal.value = false
   }
 }
@@ -174,5 +193,20 @@ const getStatusClass = (s) => ({ pending: 'bg-amber-50 text-amber-600', complete
 
 const getWhatsAppLink = (b) => `https://wa.me/573001234567?text=${encodeURIComponent(`Hola, tengo una consulta sobre mi cita de ${b.services?.name} del día ${new Date(b.appointment_date).toLocaleDateString()}.`)}`
 
-onMounted(fetchBookings)
+onMounted(() => {
+  fetchBookings()
+
+  // Suscripción en Tiempo Real para el Cliente
+  realtimeChannel = supabase
+    .channel('client-bookings')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'appointments' }, async (payload) => {
+      // Recargar siempre que haya un cambio para asegurar consistencia total
+      fetchBookings()
+    })
+    .subscribe()
+})
+
+onUnmounted(() => {
+  if (realtimeChannel) supabase.removeChannel(realtimeChannel)
+})
 </script>
