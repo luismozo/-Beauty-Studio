@@ -448,6 +448,9 @@ watch(route, () => {
 </template>
 
 <style>
+body {
+  background-color: #fafaf9; /* stone-50 */
+}
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; transform: translateY(5px); }
 </style>

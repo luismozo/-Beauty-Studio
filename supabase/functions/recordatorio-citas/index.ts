@@ -16,12 +16,33 @@ serve(async (req) => {
 
   try {
     // 1. Crear cliente de Supabase (usando variables de entorno automáticas)
-    // Usamos el Service Role Key para tener permisos de admin y saltarnos las políticas RLS
-    // Esto es seguro porque esta función corre en el servidor, no en el cliente.
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
+
+    // --- INICIO BLOQUE DE SEGURIDAD ---
+    // Verificar que quien llama a la función es realmente un ADMINISTRADOR
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      throw new Error('Falta cabecera de autorización')
+    }
+
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+
+    if (authError || !user) throw new Error('Usuario no autenticado o token inválido')
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    if (profile?.role !== 'admin') {
+      return new Response(JSON.stringify({ error: 'Acceso denegado: Se requiere rol de Administrador' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+    // --- FIN BLOQUE DE SEGURIDAD ---
 
     // 2. Calcular rango de tiempo (Ajustado a Zona Horaria Colombia UTC-5)
     const now = new Date()

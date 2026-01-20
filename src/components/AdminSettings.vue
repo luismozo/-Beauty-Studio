@@ -91,10 +91,10 @@
             <span class="font-bold text-stone-700 capitalize">{{ getDayName(hour.day_of_week) }}</span>
           </div>
 
-          <div class="flex items-center gap-4 flex-grow justify-center" :class="{ 'opacity-50 pointer-events-none': hour.is_closed }">
-            <input type="time" v-model="hour.open_time" class="p-2 bg-stone-50 rounded-lg font-mono text-sm border border-stone-200 focus:border-rose-300 outline-none" />
-            <span class="text-stone-300">-</span>
-            <input type="time" v-model="hour.close_time" class="p-2 bg-stone-50 rounded-lg font-mono text-sm border border-stone-200 focus:border-rose-300 outline-none" />
+          <div class="flex flex-col md:flex-row items-center gap-2 md:gap-4 flex-grow justify-center" :class="{ 'opacity-50 pointer-events-none': hour.is_closed }">
+            <input type="time" v-model="hour.open_time" class="w-full md:w-auto p-2 bg-stone-50 rounded-lg font-mono text-sm border border-stone-200 focus:border-rose-300 outline-none text-center" />
+            <span class="text-stone-300 hidden md:inline">-</span>
+            <input type="time" v-model="hour.close_time" class="w-full md:w-auto p-2 bg-stone-50 rounded-lg font-mono text-sm border border-stone-200 focus:border-rose-300 outline-none text-center" />
           </div>
 
           <div class="flex items-center gap-3 w-full md:w-auto justify-end">

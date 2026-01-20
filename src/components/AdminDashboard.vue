@@ -135,145 +135,147 @@
         <p class="text-stone-400 font-medium animate-pulse text-sm tracking-wide">Sincronizando agenda...</p>
       </div>
 
-      <!-- Empty State -->
-      <div v-else-if="filteredAppointments.length === 0" class="text-center py-24 bg-white rounded-[2.5rem] border border-stone-100 shadow-sm">
-        <div class="bg-stone-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-          <CalendarX2 class="w-10 h-10 text-stone-300" />
-        </div>
-        <h3 class="text-stone-800 font-serif font-bold text-2xl mb-2">{{ searchQuery ? 'Sin resultados' : 'Agenda Libre' }}</h3>
-        <p class="text-stone-400 font-light">{{ searchQuery ? 'No se encontraron citas que coincidan con tu búsqueda.' : 'No hay citas programadas en este momento.' }}</p>
-      </div>
-
-      <!-- Appointments List -->
-      <div 
-        v-for="appointment in paginatedAppointments" 
-        :key="appointment.id"
-        class="group bg-white p-6 rounded-[2rem] shadow-sm border border-stone-100 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 transition-all hover:shadow-xl hover:shadow-rose-100/40 hover:border-rose-100"
-      >
-        <!-- Info Cliente & Servicio -->
-        <div class="flex items-start gap-5 w-full lg:w-auto">
-          <!-- Date Box -->
-          <div class="flex-shrink-0 bg-stone-50 rounded-2xl p-4 text-center min-w-[80px] border border-stone-100 group-hover:bg-rose-50 group-hover:border-rose-100 transition-colors">
-            <p class="text-xs text-stone-400 font-bold uppercase mb-1">{{ getMonth(appointment.appointment_date) }}</p>
-            <p class="text-2xl font-serif font-bold text-stone-800 group-hover:text-rose-500 transition-colors">{{ getDay(appointment.appointment_date) }}</p>
-            <p class="text-xs text-stone-500 font-medium mt-1">{{ getTime(appointment.appointment_date) }}</p>
+      <template v-else>
+        <!-- Empty State -->
+        <div v-if="filteredAppointments.length === 0" class="text-center py-24 bg-white rounded-[2.5rem] border border-stone-100 shadow-sm">
+          <div class="bg-stone-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CalendarX2 class="w-10 h-10 text-stone-300" />
           </div>
-
-          <div class="space-y-2">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-full overflow-hidden bg-stone-100 border border-stone-200 flex-shrink-0">
-                <img 
-                  v-if="appointment.profiles?.avatar_url" 
-                  :src="appointment.profiles.avatar_url" 
-                  class="w-full h-full object-cover"
-                />
-                <User v-else class="w-full h-full p-2 text-stone-300" />
-              </div>
-              <div>
-              <h3 class="font-serif font-bold text-stone-800 text-xl tracking-tight">
-                {{ appointment.guest_name || appointment.profiles?.full_name || 'Cliente Anónimo' }}
-              </h3>
-              <p class="text-sm text-stone-400 font-medium flex items-center gap-2">
-                <Phone class="w-3 h-3" /> {{ appointment.guest_phone || appointment.profiles?.phone || 'Sin teléfono' }}
-              </p>
-              </div>
-            </div>
-
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="flex items-center gap-1.5 text-stone-600 font-bold text-[10px] uppercase tracking-wider bg-stone-100 px-3 py-1.5 rounded-full">
-                <Sparkles class="w-3 h-3 text-rose-400" /> {{ appointment.services?.name }}
-              </span>
-              
-              <!-- Status Badge -->
-              <span :class="[
-                'flex items-center gap-1.5 font-bold text-[10px] uppercase tracking-wider px-3 py-1.5 rounded-full',
-                appointment.status === 'completed' ? 'bg-green-50 text-green-600' : 
-                appointment.status === 'cancelled' ? 'bg-red-50 text-red-600' : 
-                'bg-amber-50 text-amber-600'
-              ]">
-                <span class="w-1.5 h-1.5 rounded-full" :class="[
-                  appointment.status === 'completed' ? 'bg-green-500' : 
-                  appointment.status === 'cancelled' ? 'bg-red-500' : 
-                  'bg-amber-500'
-                ]"></span>
-                {{ translateStatus(appointment.status) }}
-              </span>
-            </div>
-          </div>
+          <h3 class="text-stone-800 font-serif font-bold text-2xl mb-2">{{ searchQuery ? 'Sin resultados' : 'Agenda Libre' }}</h3>
+          <p class="text-stone-400 font-light">{{ searchQuery ? 'No se encontraron citas que coincidan con tu búsqueda.' : 'No hay citas programadas en este momento.' }}</p>
         </div>
 
-        <!-- Actions -->
-        <div class="flex items-center gap-3 w-full lg:w-auto border-t border-stone-100 lg:border-none pt-5 lg:pt-0 mt-2 lg:mt-0">
-          <a 
-            v-if="appointment.profiles?.phone"
-            :href="generateWhatsAppLink(appointment)"
-            target="_blank"
-            class="flex-1 lg:flex-none flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-bold text-sm shadow-lg shadow-green-100 transition-all transform active:scale-95"
-          >
-            <MessageCircle class="w-4 h-4" />
-            <span class="lg:hidden xl:inline">WhatsApp</span>
-          </a>
-          <button 
-            v-else
-            disabled
-            class="flex-1 lg:flex-none flex items-center justify-center gap-2 bg-stone-200 text-stone-400 px-6 py-3 rounded-xl font-bold text-sm cursor-not-allowed"
-          >
-            <MessageCircle class="w-4 h-4" />
-            <span class="lg:hidden xl:inline">Sin Teléfono</span>
-          </button>
-          
+        <!-- Appointments List -->
+        <div 
+          v-for="appointment in paginatedAppointments" 
+          :key="appointment.id"
+          class="group bg-white p-6 rounded-[2rem] shadow-sm border border-stone-100 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 transition-all hover:shadow-xl hover:shadow-rose-100/40 hover:border-rose-100"
+        >
+          <!-- Info Cliente & Servicio -->
+          <div class="flex items-start gap-5 w-full lg:w-auto">
+            <!-- Date Box -->
+            <div class="flex-shrink-0 bg-stone-50 rounded-2xl p-4 text-center min-w-[80px] border border-stone-100 group-hover:bg-rose-50 group-hover:border-rose-100 transition-colors">
+              <p class="text-xs text-stone-400 font-bold uppercase mb-1">{{ getMonth(appointment.appointment_date) }}</p>
+              <p class="text-2xl font-serif font-bold text-stone-800 group-hover:text-rose-500 transition-colors">{{ getDay(appointment.appointment_date) }}</p>
+              <p class="text-xs text-stone-500 font-medium mt-1">{{ getTime(appointment.appointment_date) }}</p>
+            </div>
+
+            <div class="space-y-2">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full overflow-hidden bg-stone-100 border border-stone-200 flex-shrink-0">
+                  <img 
+                    v-if="appointment.profiles?.avatar_url" 
+                    :src="appointment.profiles.avatar_url" 
+                    class="w-full h-full object-cover"
+                  />
+                  <User v-else class="w-full h-full p-2 text-stone-300" />
+                </div>
+                <div>
+                <h3 class="font-serif font-bold text-stone-800 text-xl tracking-tight">
+                  {{ appointment.guest_name || appointment.profiles?.full_name || 'Cliente Anónimo' }}
+                </h3>
+                <p class="text-sm text-stone-400 font-medium flex items-center gap-2">
+                  <Phone class="w-3 h-3" /> {{ appointment.guest_phone || appointment.profiles?.phone || 'Sin teléfono' }}
+                </p>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="flex items-center gap-1.5 text-stone-600 font-bold text-[10px] uppercase tracking-wider bg-stone-100 px-3 py-1.5 rounded-full">
+                  <Sparkles class="w-3 h-3 text-rose-400" /> {{ appointment.services?.name }}
+                </span>
+                
+                <!-- Status Badge -->
+                <span :class="[
+                  'flex items-center gap-1.5 font-bold text-[10px] uppercase tracking-wider px-3 py-1.5 rounded-full',
+                  appointment.status === 'completed' ? 'bg-green-50 text-green-600' : 
+                  appointment.status === 'cancelled' ? 'bg-red-50 text-red-600' : 
+                  'bg-amber-50 text-amber-600'
+                ]">
+                  <span class="w-1.5 h-1.5 rounded-full" :class="[
+                    appointment.status === 'completed' ? 'bg-green-500' : 
+                    appointment.status === 'cancelled' ? 'bg-red-500' : 
+                    'bg-amber-500'
+                  ]"></span>
+                  {{ translateStatus(appointment.status) }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex items-center gap-3 w-full lg:w-auto border-t border-stone-100 lg:border-none pt-5 lg:pt-0 mt-2 lg:mt-0">
+            <a 
+              v-if="appointment.profiles?.phone"
+              :href="generateWhatsAppLink(appointment)"
+              target="_blank"
+              class="flex-1 lg:flex-none flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-bold text-sm shadow-lg shadow-green-100 transition-all transform active:scale-95"
+            >
+              <MessageCircle class="w-4 h-4" />
+              <span class="lg:hidden xl:inline">WhatsApp</span>
+            </a>
+            <button 
+              v-else
+              disabled
+              class="flex-1 lg:flex-none flex items-center justify-center gap-2 bg-stone-200 text-stone-400 px-6 py-3 rounded-xl font-bold text-sm cursor-not-allowed"
+            >
+              <MessageCircle class="w-4 h-4" />
+              <span class="lg:hidden xl:inline">Sin Teléfono</span>
+            </button>
+            
+            <div class="flex gap-2">
+              <button 
+                v-if="appointment.status === 'pending'"
+                @click="cancelAppointment(appointment.id)"
+                title="Cancelar cita"
+                class="p-3 rounded-xl bg-stone-50 text-stone-400 hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition-all border border-stone-100"
+              >
+                <XCircle class="w-5 h-5" />
+              </button>
+
+              <button 
+                v-if="appointment.status === 'pending'"
+                @click="completeAppointment(appointment.id)"
+                title="Marcar como completada"
+                class="p-3 rounded-xl bg-stone-50 text-stone-400 hover:bg-stone-800 hover:text-white transition-all border border-stone-100"
+              >
+                <CheckCheck class="w-5 h-5" />
+              </button>
+
+              <button 
+                @click="deleteAppointment(appointment.id)"
+                title="Eliminar cita"
+                class="p-3 rounded-xl bg-stone-50 text-stone-400 hover:bg-gray-100 hover:text-gray-600 transition-all border border-stone-100"
+              >
+                <Trash2 class="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div v-if="filteredAppointments.length > itemsPerPage" class="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-stone-100">
+          <span class="text-sm text-stone-500 font-medium">
+            Mostrando {{ (currentPage - 1) * itemsPerPage + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredAppointments.length) }} de {{ filteredAppointments.length }} resultados
+          </span>
           <div class="flex gap-2">
             <button 
-              v-if="appointment.status === 'pending'"
-              @click="cancelAppointment(appointment.id)"
-              title="Cancelar cita"
-              class="p-3 rounded-xl bg-stone-50 text-stone-400 hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition-all border border-stone-100"
+              @click="prevPage" 
+              :disabled="currentPage === 1"
+              class="p-2.5 rounded-xl border border-stone-200 hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white"
             >
-              <XCircle class="w-5 h-5" />
+              <ChevronLeft class="w-5 h-5 text-stone-600" />
             </button>
-
             <button 
-              v-if="appointment.status === 'pending'"
-              @click="completeAppointment(appointment.id)"
-              title="Marcar como completada"
-              class="p-3 rounded-xl bg-stone-50 text-stone-400 hover:bg-stone-800 hover:text-white transition-all border border-stone-100"
+              @click="nextPage" 
+              :disabled="currentPage === totalPages"
+              class="p-2.5 rounded-xl border border-stone-200 hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white"
             >
-              <CheckCheck class="w-5 h-5" />
-            </button>
-
-            <button 
-              @click="deleteAppointment(appointment.id)"
-              title="Eliminar cita"
-              class="p-3 rounded-xl bg-stone-50 text-stone-400 hover:bg-gray-100 hover:text-gray-600 transition-all border border-stone-100"
-            >
-              <Trash2 class="w-5 h-5" />
+              <ChevronRight class="w-5 h-5 text-stone-600" />
             </button>
           </div>
         </div>
-      </div>
-
-      <!-- Pagination Controls -->
-      <div v-if="filteredAppointments.length > itemsPerPage" class="flex flex-col sm:flex-row justify-between items-center gap-4 pt-6 border-t border-stone-100">
-        <span class="text-sm text-stone-500 font-medium">
-          Mostrando {{ (currentPage - 1) * itemsPerPage + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredAppointments.length) }} de {{ filteredAppointments.length }} resultados
-        </span>
-        <div class="flex gap-2">
-          <button 
-            @click="prevPage" 
-            :disabled="currentPage === 1"
-            class="p-2.5 rounded-xl border border-stone-200 hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white"
-          >
-            <ChevronLeft class="w-5 h-5 text-stone-600" />
-          </button>
-          <button 
-            @click="nextPage" 
-            :disabled="currentPage === totalPages"
-            class="p-2.5 rounded-xl border border-stone-200 hover:bg-stone-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white"
-          >
-            <ChevronRight class="w-5 h-5 text-stone-600" />
-          </button>
-        </div>
-      </div>
+      </template>
     </div>
 
     <!-- Cancel Confirmation Modal -->
@@ -292,6 +294,28 @@
             </button>
             <button @click="confirmCancel" class="flex-1 py-3 rounded-xl font-bold text-sm text-white bg-red-500 hover:bg-red-600 transition-colors shadow-lg shadow-red-100">
               Sí, Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Appointment Confirmation Modal -->
+    <div v-if="showDeleteAppointmentModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm transition-all">
+      <div class="bg-white rounded-2xl max-w-sm w-[95%] p-6 shadow-2xl border border-stone-100 relative animate-in fade-in zoom-in duration-200">
+        <div class="text-center">
+          <div class="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Trash2 class="w-6 h-6 text-red-500" />
+          </div>
+          <h3 class="text-xl font-serif font-bold text-stone-800 mb-2">Eliminar Cita</h3>
+          <p class="text-stone-500 text-sm mb-6 leading-relaxed">¿Estás seguro de que deseas eliminar permanentemente esta cita? Esta acción no se puede deshacer.</p>
+          
+          <div class="flex gap-3">
+            <button @click="showDeleteAppointmentModal = false" class="flex-1 py-3 rounded-xl font-bold text-sm text-stone-600 bg-stone-100 hover:bg-stone-200 transition-colors">
+              Cancelar
+            </button>
+            <button @click="confirmDeleteAppointment" class="flex-1 py-3 rounded-xl font-bold text-sm text-white bg-red-500 hover:bg-red-600 transition-colors shadow-lg shadow-red-100">
+              Sí, Eliminar
             </button>
           </div>
         </div>
@@ -423,9 +447,9 @@
             </div>
 
             <div class="flex-grow flex items-center justify-center">
-              <div v-if="!day.is_closed" class="flex items-center gap-2 w-full sm:w-auto">
+              <div v-if="!day.is_closed" class="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
                 <input type="time" v-model="day.open_time" class="w-full sm:w-auto p-2 bg-stone-50 border border-stone-200 rounded-lg text-sm font-bold text-stone-600 focus:ring-2 focus:ring-rose-100 outline-none text-center">
-                <span class="text-stone-400">-</span>
+                <span class="text-stone-400 hidden sm:inline">-</span>
                 <input type="time" v-model="day.close_time" class="w-full sm:w-auto p-2 bg-stone-50 border border-stone-200 rounded-lg text-sm font-bold text-stone-600 focus:ring-2 focus:ring-rose-100 outline-none text-center">
               </div>
               <div v-else class="hidden sm:block text-sm font-bold text-stone-400 px-4">CERRADO</div>
@@ -524,6 +548,8 @@ const showHoursModal = ref(false)
 const showRemindersModal = ref(false)
 const tomorrowAppointments = ref([])
 const appointmentToCancel = ref(null)
+const showDeleteAppointmentModal = ref(false)
+const appointmentToDelete = ref(null)
 const currentFilter = ref('today')
 const searchQuery = ref('')
 const currentPage = ref(1)
@@ -807,13 +833,48 @@ const saveBusinessHours = async () => {
 const checkReminders = async () => {
   try {
     loading.value = true
-    // Llamar a la Edge Function
-    const { data, error } = await supabase.functions.invoke('recordatorio-citas')
     
-    if (error) throw error
+    // 1. REFRESCAR SESIÓN: Forzamos un token nuevo para evitar el error "Invalid JWT"
+    const { data: { session }, error: sessionError } = await supabase.auth.refreshSession()
     
+    if (sessionError || !session) {
+      // Si falla el refresh, intentamos obtener la sesión actual como respaldo
+      const { data: { session: currentSession } } = await supabase.auth.getSession()
+      if (!currentSession) {
+        toast.error('Sesión expirada. Por favor inicia sesión nuevamente.')
+        return
+      }
+    }
+
+    // Obtener la sesión más reciente (sea del refresh o la actual)
+    const { data: { session: activeSession } } = await supabase.auth.getSession()
+
+    // 2. Usar fetch directo para asegurar el envío de headers (Bypass de supabase.functions.invoke)
+    // El Gateway de Supabase requiere 'apikey' (Anon Key) Y 'Authorization' (Bearer Token)
+    const response = await fetch(`${supabase.supabaseUrl}/functions/v1/recordatorio-citas`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${activeSession.access_token}`,
+        'apikey': supabase.supabaseKey,
+        'Content-Type': 'application/json'
+      }
+    })
+    
+    if (!response.ok) {
+      const errText = await response.text()
+      
+      // Manejo específico para el error de JWT
+      if (response.status === 401 && errText.includes('Invalid JWT')) {
+        throw new Error('El sistema de seguridad rechazó el token. Intenta cerrar sesión y volver a entrar.')
+      }
+      
+      throw new Error(`Error ${response.status}: ${errText}`)
+    }
+
+    const data = await response.json()
+    
+    // 4. Procesar respuesta exitosa
     if (data && data.success) {
-      // Mapear resultados para mostrar estado en la UI
       const resultsMap = new Map(data.results?.map(r => [r.id, r]) || [])
       
       tomorrowAppointments.value = (data.appointments || []).map(apt => ({
@@ -823,13 +884,20 @@ const checkReminders = async () => {
       
       showRemindersModal.value = true
       
-      if (data.results?.some(r => r.status === 'sent')) toast.success('Correos enviados exitosamente.')
-      if (data.results?.some(r => r.status === 'skipped')) toast.info('Algunas citas no tienen email o falta configuración.')
+      const sentCount = data.results?.filter(r => r.status === 'sent').length || 0
+      const skippedCount = data.results?.filter(r => r.status === 'skipped').length || 0
+      
+      if (sentCount > 0) toast.success(`${sentCount} correo(s) enviado(s) exitosamente.`)
+      if (skippedCount > 0) toast.info(`${skippedCount} cita(s) omitida(s) (sin email o configuración faltante).`)
+      if (sentCount === 0 && skippedCount === 0 && data.appointments?.length === 0) {
+        toast.info('No hay citas programadas para mañana.')
+      }
     } else {
-      throw new Error('La función no devolvió datos válidos')
+      toast.error('La función no devolvió una respuesta válida.')
     }
   } catch (e) {
-    toast.error('Error al obtener recordatorios: ' + e.message)
+    console.error('Error inesperado:', e)
+    toast.error('Error inesperado: ' + e.message)
   } finally {
     loading.value = false
   }
@@ -925,10 +993,25 @@ const confirmCancel = async () => {
   }
 }
 
-const deleteAppointment = async (id) => {
-  if (!confirm('¿Seguro que deseas ELIMINAR permanentemente esta cita? Esta acción no se puede deshacer.')) return
-  const { error } = await supabase.from('appointments').delete().eq('id', id)
-  if (!error) fetchAppointments()
+const deleteAppointment = (id) => {
+  appointmentToDelete.value = id
+  showDeleteAppointmentModal.value = true
+}
+
+const confirmDeleteAppointment = async () => {
+  if (!appointmentToDelete.value) return
+
+  try {
+    const { error } = await supabase.from('appointments').delete().eq('id', appointmentToDelete.value)
+    if (error) throw error
+    toast.success('Cita eliminada permanentemente')
+    fetchAppointments()
+  } catch (e) {
+    toast.error('Error al eliminar: ' + e.message)
+  } finally {
+    showDeleteAppointmentModal.value = false
+    appointmentToDelete.value = null
+  }
 }
 
 // --- Realtime Subscription ---
